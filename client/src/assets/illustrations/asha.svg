@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">
+  <!-- Modular ASHA Illustration Placeholder (Warm Cream/Orange Palette) -->
+  <!-- Drop a real unDraw/Storyset SVG here later -->
+  <rect width="800" height="600" fill="transparent" />
+  <circle cx="400" cy="300" r="250" fill="#ffedd5" /> <!-- Cream background -->
+  <path d="M 250,450 C 250,250 550,250 550,450 Z" fill="#c2410c" /> <!-- Dark orange base -->
+  <circle cx="400" cy="220" r="60" fill="#f97316" /> <!-- Orange accent -->
+  <rect x="360" y="320" width="80" height="130" rx="10" fill="#fdba74" /> <!-- Soft peach element -->
+  <path d="M 200,150 Q 250,100 300,150 T 400,150" fill="none" stroke="#fed7aa" stroke-width="8" stroke-linecap="round" />
+  <circle cx="600" cy="150" r="20" fill="#ea580c" />
+  <circle cx="150" cy="400" r="30" fill="#fb923c" opacity="0.5" />
+</svg>
