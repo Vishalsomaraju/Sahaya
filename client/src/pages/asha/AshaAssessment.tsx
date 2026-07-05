@@ -9,6 +9,7 @@ import FloatingCard from '../../components/shared/FloatingCard';
 import Button from '../../components/shared/Button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { clsx } from 'clsx';
+import { useVitalsPolling } from '../../hooks/useVitalsPolling';
 
 export default function AshaAssessment() {
   const navigate = useNavigate();
@@ -25,6 +26,20 @@ export default function AshaAssessment() {
     temp: '',
     bp: ''
   });
+
+  const { vitals: latestVitals } = useVitalsPolling(selectedPatientId || 'demo-patient');
+
+  const handleSyncVitals = () => {
+    if (latestVitals) {
+      setVitals(prev => ({
+        ...prev,
+        hr: latestVitals.heartRate?.toString() || prev.hr,
+        spo2: latestVitals.spo2?.toString() || prev.spo2,
+        temp: latestVitals.temperature?.toString() || prev.temp,
+        bp: latestVitals.bloodPressure || prev.bp
+      }));
+    }
+  };
 
   const [uiStep, setUiStep] = useState(1);
   const [step, setStep] = useState<'form' | 'analyzing' | 'result'>('form');
@@ -299,9 +314,19 @@ export default function AshaAssessment() {
 
           {uiStep === 4 && (
             <motion.div key="step4" variants={stepVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }} className="flex flex-col gap-10">
-              <div className="text-center md:text-left">
-                <h1 className="text-4xl md:text-5xl font-extrabold text-[var(--color-text-primary)] mb-4 tracking-tight">Vitals Check</h1>
-                <p className="text-xl text-[var(--color-text-muted)] font-medium">Record the patient's current vitals.</p>
+              <div className="flex flex-col md:flex-row md:items-end justify-between text-center md:text-left gap-4">
+                <div>
+                  <h1 className="text-4xl md:text-5xl font-extrabold text-[var(--color-text-primary)] mb-4 tracking-tight">Vitals Check</h1>
+                  <p className="text-xl text-[var(--color-text-muted)] font-medium">Record the patient's current vitals.</p>
+                </div>
+                <Button 
+                  onClick={handleSyncVitals} 
+                  variant="outline" 
+                  className="border-indigo-200 text-indigo-600 hover:bg-indigo-50 font-bold"
+                >
+                  <Activity size={18} className="mr-2" />
+                  Auto-fill from Wearable
+                </Button>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2 max-w-3xl">

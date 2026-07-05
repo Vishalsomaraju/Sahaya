@@ -5,7 +5,7 @@ import TriageResult from '../../components/shared/TriageResult';
 import PatientSummaryReport from '../../components/shared/PatientSummaryReport';
 import { mockTriage, generatePatientSummary, mockCurrentPatient } from '../../data/mockData';
 import { ArrowLeft } from 'lucide-react';
-import Button from '../../components/shared/Button';
+import AnimatedButton from '../../components/shared/AnimatedButton';
 import { motion } from 'framer-motion';
 
 export default function PatientTriage() {
@@ -59,14 +59,14 @@ export default function PatientTriage() {
             onDownloadSummary={() => setShowSummary(true)}
           />
           
-          <Button 
+          <AnimatedButton 
             variant="ghost"
             onClick={() => navigate('/patient')}
             className="self-center mt-4 h-14 px-8 text-lg font-bold"
           >
             <ArrowLeft size={24} className="mr-3" />
             Back to Home
-          </Button>
+          </AnimatedButton>
         </motion.div>
       )}
 

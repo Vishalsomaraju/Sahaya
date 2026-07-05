@@ -5,9 +5,14 @@ import FloatingCard from '../../components/shared/FloatingCard';
 import Button from '../../components/shared/Button';
 import { motion } from 'framer-motion';
 import doctorIllustration from '../../assets/illustrations/doctor.svg';
+import { useVitalsPolling } from '../../hooks/useVitalsPolling';
 
 export default function DoctorDashboard() {
   const navigate = useNavigate();
+
+  // Determine next case for the CTA
+  const nextCase = mockIncomingCases[0];
+  const { vitals, isMock, loading } = useVitalsPolling(nextCase?.id || 'demo-patient');
 
   const getUrgencyBadge = (urgency: string) => {
     switch (urgency) {
@@ -31,8 +36,6 @@ export default function DoctorDashboard() {
     show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 300, damping: 24 } }
   };
 
-  // Determine next case for the CTA
-  const nextCase = mockIncomingCases[0];
 
   return (
     <div className="flex flex-col gap-8 max-w-5xl mx-auto pb-12 px-4 sm:px-0">
@@ -68,7 +71,14 @@ export default function DoctorDashboard() {
                   </div>
                   <div>
                     <h2 className="text-xl font-bold text-[#312e81]">Next: {nextCase?.patient}</h2>
-                    <p className="text-indigo-600 text-sm font-semibold">Wait time: 5 mins • {nextCase?.urgency}</p>
+                    <p className="text-indigo-600 text-sm font-semibold mb-1">Wait time: 5 mins • {nextCase?.urgency}</p>
+                    {vitals && (
+                      <div className="flex items-center gap-3 text-xs font-bold text-gray-500">
+                        <span className="bg-white/60 px-2 py-1 rounded border border-indigo-50">HR: {vitals.heartRate} bpm</span>
+                        <span className="bg-white/60 px-2 py-1 rounded border border-indigo-50">SpO₂: {vitals.spo2}%</span>
+                        {isMock && <span className="text-orange-500 italic">Mock Data</span>}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <Button fullWidth className="bg-[#4f46e5] hover:bg-[#4338ca] text-white flex items-center justify-between px-6 py-4 rounded-2xl text-lg group-hover:shadow-md transition-all font-bold">

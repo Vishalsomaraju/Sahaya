@@ -1,13 +1,17 @@
 import { useNavigate } from 'react-router-dom';
-import { HeartPulse, ArrowRight, Sparkles, Activity, Clock, CheckCircle2 } from 'lucide-react';
+import { HeartPulse, ArrowRight, Sparkles, Activity, Clock, CheckCircle2, Leaf, Heart, Phone } from 'lucide-react';
 import { mockCurrentPatient } from '../../data/mockData';
 import FloatingCard from '../../components/shared/FloatingCard';
-import Button from '../../components/shared/Button';
+import AnimatedButton from '../../components/shared/AnimatedButton';
+import AnimatedNumber from '../../components/shared/AnimatedNumber';
 import { motion } from 'framer-motion';
+import { fadeUp } from '../../lib/animations';
 import patientIllustration from '../../assets/illustrations/patient.svg';
+import { useVitalsPolling } from '../../hooks/useVitalsPolling';
 
 export default function PatientHome() {
   const navigate = useNavigate();
+  const { vitals, isMock, loading } = useVitalsPolling();
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -28,7 +32,7 @@ export default function PatientHome() {
       <motion.div variants={containerVariants} initial="hidden" animate="show" className="flex flex-col gap-10">
         
         {/* Massive Editorial Hero Section (40% width illustration) */}
-        <motion.div variants={itemVariants} className="relative w-full rounded-[36px] overflow-hidden bg-gradient-to-br from-[#f0fdf4] to-[#ccfbf1] p-8 sm:p-12 shadow-[0_12px_40px_rgb(0,0,0,0.06)] border border-white/80">
+        <motion.div variants={fadeUp} className="relative w-full rounded-[36px] overflow-hidden bg-gradient-to-br from-[#f0fdf4] to-[#ccfbf1] p-8 sm:p-12 shadow-[0_12px_40px_rgb(0,0,0,0.06)] border border-white/80">
           
           <div className="flex flex-col md:flex-row items-center justify-between gap-10">
             {/* Storytelling Text & CTA */}
@@ -56,10 +60,10 @@ export default function PatientHome() {
                     <p className="text-[#0d9488] text-sm font-semibold">Estimated time: 2 min</p>
                   </div>
                 </div>
-                <Button fullWidth className="bg-[#0f766e] hover:bg-[#115e59] text-white flex items-center justify-between px-6 py-4 rounded-2xl text-lg group-hover:shadow-md transition-all font-bold">
+                <AnimatedButton fullWidth className="bg-[#0f766e] hover:bg-[#115e59] text-white flex items-center justify-between px-6 py-4 rounded-2xl text-lg group-hover:shadow-md transition-all font-bold">
                   <span>Start Assessment</span>
                   <ArrowRight size={22} className="group-hover:translate-x-1 transition-transform" />
-                </Button>
+                </AnimatedButton>
               </FloatingCard>
             </div>
 
@@ -70,8 +74,33 @@ export default function PatientHome() {
                 transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
                 src={patientIllustration} 
                 alt="Patient sitting comfortably" 
-                className="w-full h-auto max-h-[400px] object-contain drop-shadow-2xl"
+                className="w-full h-auto max-h-[400px] object-contain drop-shadow-2xl relative z-20"
               />
+              
+              {/* Decorative floating icons */}
+              <motion.div 
+                animate={{ y: [0, -10, 0], rotate: [0, 5, 0] }}
+                transition={{ repeat: Infinity, duration: 4.2, ease: "easeInOut", delay: 0.5 }}
+                className="absolute top-10 left-10 z-10 bg-white p-3 rounded-2xl shadow-lg shadow-green-900/5 text-emerald-500"
+              >
+                <Leaf size={24} />
+              </motion.div>
+              
+              <motion.div 
+                animate={{ y: [0, -8, 0], rotate: [0, -5, 0] }}
+                transition={{ repeat: Infinity, duration: 3.5, ease: "easeInOut", delay: 1.2 }}
+                className="absolute bottom-20 left-4 z-30 bg-white p-3 rounded-2xl shadow-lg shadow-rose-900/5 text-rose-500"
+              >
+                <Heart size={24} />
+              </motion.div>
+              
+              <motion.div 
+                animate={{ y: [0, -12, 0], rotate: [0, 8, 0] }}
+                transition={{ repeat: Infinity, duration: 5, ease: "easeInOut", delay: 0.2 }}
+                className="absolute top-1/2 right-4 z-10 bg-white p-3 rounded-2xl shadow-lg shadow-blue-900/5 text-blue-500"
+              >
+                <Phone size={24} />
+              </motion.div>
             </div>
           </div>
         </motion.div>
@@ -89,12 +118,27 @@ export default function PatientHome() {
               >
                 <HeartPulse size={24} className="drop-shadow-sm" />
               </motion.div>
-              <span className="text-xs font-extrabold text-rose-600 bg-rose-50 px-4 py-1.5 rounded-full uppercase tracking-wider">Normal</span>
+              <motion.span 
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3 }}
+              >
+                <motion.span 
+                  animate={{ scale: [1, 1.05, 1] }}
+                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                  className="inline-block text-xs font-extrabold text-rose-600 bg-rose-50 px-4 py-1.5 rounded-full uppercase tracking-wider"
+                >
+                  Normal
+                </motion.span>
+              </motion.span>
             </div>
             <div className="relative z-10">
               <p className="text-sm font-bold text-gray-400 mb-1 tracking-wide uppercase">Heart Rate</p>
               <div className="flex items-baseline gap-1.5">
-                <span className="text-5xl font-extrabold text-gray-800 tracking-tight">72</span>
+                <span className="text-5xl font-extrabold text-gray-800 tracking-tight">
+                  {loading ? '...' : <AnimatedNumber value={vitals?.heartRate || 72} />}
+                </span>
                 <span className="text-lg font-bold text-gray-400">bpm</span>
               </div>
             </div>
@@ -119,13 +163,28 @@ export default function PatientHome() {
               <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center shadow-inner shadow-blue-100">
                 <Activity size={24} />
               </div>
-              <span className="text-xs font-extrabold text-blue-600 bg-blue-50 px-4 py-1.5 rounded-full uppercase tracking-wider">Optimal</span>
+              <motion.span 
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3 }}
+              >
+                <motion.span 
+                  animate={{ scale: [1, 1.05, 1] }}
+                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                  className="inline-block text-xs font-extrabold text-blue-600 bg-blue-50 px-4 py-1.5 rounded-full uppercase tracking-wider"
+                >
+                  Optimal
+                </motion.span>
+              </motion.span>
             </div>
             <div className="relative z-10 flex justify-between items-end">
               <div>
                 <p className="text-sm font-bold text-gray-400 mb-1 tracking-wide uppercase">Oxygen (SpO₂)</p>
                 <div className="flex items-baseline gap-1.5">
-                  <span className="text-5xl font-extrabold text-gray-800 tracking-tight">98</span>
+                  <span className="text-5xl font-extrabold text-gray-800 tracking-tight">
+                    {loading ? '...' : <AnimatedNumber value={vitals?.spo2 || 98} />}
+                  </span>
                   <span className="text-lg font-bold text-gray-400">%</span>
                 </div>
               </div>

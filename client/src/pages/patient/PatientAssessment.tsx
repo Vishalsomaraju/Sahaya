@@ -4,8 +4,9 @@ import { mockSymptoms } from '../../data/mockData';
 import { Check, ChevronLeft, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import FloatingCard from '../../components/shared/FloatingCard';
-import Button from '../../components/shared/Button';
+import AnimatedButton from '../../components/shared/AnimatedButton';
 import { clsx } from 'clsx';
+import { staggerContainer, scaleIn } from '../../lib/animations';
 
 export default function PatientAssessment() {
   const navigate = useNavigate();
@@ -66,7 +67,7 @@ export default function PatientAssessment() {
               className="h-full bg-gradient-to-r from-[var(--color-primary)] to-[#4fd1c5]"
               initial={{ width: `${((step - 1) / 3) * 100}%` }}
               animate={{ width: `${(step / 3) * 100}%` }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
+              transition={{ type: "spring", stiffness: 120, damping: 15 }}
             />
           </div>
         </div>
@@ -81,34 +82,46 @@ export default function PatientAssessment() {
                 <h1 className="text-4xl md:text-5xl font-extrabold text-[var(--color-text-primary)] mb-4 tracking-tight">What symptoms are you experiencing?</h1>
                 <p className="text-xl text-[var(--color-text-muted)] font-medium">Select all that apply.</p>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
+              <motion.div 
+                variants={staggerContainer(0.05)} 
+                initial="hidden" 
+                animate="show" 
+                className="grid grid-cols-2 md:grid-cols-3 gap-5"
+              >
                 {mockSymptoms.map(symptom => {
                   const isSelected = selectedSymptoms.includes(symptom);
                   return (
-                    <FloatingCard
-                      key={symptom}
-                      hoverable
-                      onClick={() => toggleSymptom(symptom)}
-                      className={clsx(
-                        "p-6 flex flex-col items-center justify-center text-center gap-4 h-40 border-2 transition-all rounded-3xl",
-                        isSelected 
-                          ? "border-[var(--color-primary)] bg-[var(--color-primary-light)]/40 shadow-md shadow-[var(--color-primary)]/10" 
-                          : "border-transparent hover:border-gray-200"
-                      )}
-                    >
-                      <div className={clsx(
-                        "w-12 h-12 rounded-full flex items-center justify-center transition-colors shadow-sm",
-                        isSelected ? "bg-[var(--color-primary)] text-white" : "bg-gray-100 text-[var(--color-text-muted)]"
-                      )}>
-                        {isSelected ? <Check size={24} strokeWidth={3} /> : <Activity size={24} />}
-                      </div>
-                      <span className={clsx("font-extrabold text-lg", isSelected ? "text-[var(--color-primary-dark)]" : "text-[var(--color-text-primary)]")}>
-                        {symptom}
-                      </span>
-                    </FloatingCard>
+                    <motion.div key={symptom} variants={scaleIn}>
+                      <FloatingCard
+                        hoverable
+                        onClick={() => toggleSymptom(symptom)}
+                        className={clsx(
+                          "relative p-6 flex flex-col items-center justify-center text-center gap-4 h-40 border-2 transition-all duration-250 rounded-3xl cursor-pointer",
+                          isSelected 
+                            ? "border-[var(--color-primary)] bg-[var(--color-primary-light)]/40 shadow-md shadow-[var(--color-primary)]/10" 
+                            : "border-transparent hover:border-gray-200 bg-white"
+                        )}
+                      >
+                        <motion.div
+                          animate={{ scale: isSelected ? [1, 1.08, 1] : 1 }}
+                          transition={{ duration: 0.3 }}
+                          className="flex flex-col items-center gap-4"
+                        >
+                          <div className={clsx(
+                            "w-12 h-12 rounded-full flex items-center justify-center transition-colors duration-250 shadow-sm",
+                            isSelected ? "bg-[var(--color-primary)] text-white" : "bg-gray-100 text-[var(--color-text-muted)]"
+                          )}>
+                            {isSelected ? <Check size={24} strokeWidth={3} /> : <Activity size={24} />}
+                          </div>
+                          <span className={clsx("font-extrabold text-lg transition-colors duration-250", isSelected ? "text-[var(--color-primary-dark)]" : "text-[var(--color-text-primary)]")}>
+                            {symptom}
+                          </span>
+                        </motion.div>
+                      </FloatingCard>
+                    </motion.div>
                   );
                 })}
-              </div>
+              </motion.div>
             </motion.div>
           )}
 
@@ -118,30 +131,42 @@ export default function PatientAssessment() {
                 <h1 className="text-4xl md:text-5xl font-extrabold text-[var(--color-text-primary)] mb-4 tracking-tight">How severe are the symptoms?</h1>
                 <p className="text-xl text-[var(--color-text-muted)] font-medium">This helps us gauge urgency.</p>
               </div>
-              <div className="flex flex-col gap-5 max-w-2xl mx-auto w-full md:mx-0">
+              <motion.div 
+                variants={staggerContainer(0.05)} 
+                initial="hidden" 
+                animate="show" 
+                className="flex flex-col gap-5 max-w-2xl mx-auto w-full md:mx-0"
+              >
                 {['Mild', 'Moderate', 'Severe'].map(level => {
                   const isSelected = severity === level;
                   return (
-                    <FloatingCard
-                      key={level}
-                      hoverable
-                      onClick={() => setSeverity(level)}
-                      className={clsx(
-                        "p-8 flex items-center justify-between border-2 transition-all rounded-3xl",
-                        isSelected ? "border-[var(--color-primary)] bg-[var(--color-primary-light)]/40 shadow-md shadow-[var(--color-primary)]/10" : "border-transparent"
-                      )}
-                    >
-                      <span className="text-2xl font-extrabold text-[var(--color-text-primary)]">{level}</span>
-                      <div className={clsx(
-                        "w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors",
-                        isSelected ? "border-[var(--color-primary)] bg-[var(--color-primary)] text-white" : "border-gray-200"
-                      )}>
-                        {isSelected && <Check size={18} strokeWidth={3} />}
-                      </div>
-                    </FloatingCard>
+                    <motion.div key={level} variants={scaleIn}>
+                      <FloatingCard
+                        hoverable
+                        onClick={() => setSeverity(level)}
+                        className={clsx(
+                          "p-8 flex items-center justify-between border-2 transition-all duration-250 rounded-3xl cursor-pointer",
+                          isSelected ? "border-[var(--color-primary)] bg-[var(--color-primary-light)]/40 shadow-md shadow-[var(--color-primary)]/10" : "border-transparent bg-white"
+                        )}
+                      >
+                        <motion.div
+                          animate={{ scale: isSelected ? [1, 1.05, 1] : 1 }}
+                          transition={{ duration: 0.3 }}
+                          className="flex items-center justify-between w-full"
+                        >
+                          <span className={clsx("text-2xl font-extrabold transition-colors duration-250", isSelected ? "text-[var(--color-primary-dark)]" : "text-[var(--color-text-primary)]")}>{level}</span>
+                          <div className={clsx(
+                            "w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors duration-250",
+                            isSelected ? "border-[var(--color-primary)] bg-[var(--color-primary)] text-white" : "border-gray-200"
+                          )}>
+                            {isSelected && <Check size={18} strokeWidth={3} />}
+                          </div>
+                        </motion.div>
+                      </FloatingCard>
+                    </motion.div>
                   );
                 })}
-              </div>
+              </motion.div>
             </motion.div>
           )}
 
@@ -151,37 +176,49 @@ export default function PatientAssessment() {
                 <h1 className="text-4xl md:text-5xl font-extrabold text-[var(--color-text-primary)] mb-4 tracking-tight">How long have you felt this way?</h1>
                 <p className="text-xl text-[var(--color-text-muted)] font-medium">Select the best estimate.</p>
               </div>
-              <div className="flex flex-col gap-5 max-w-2xl mx-auto w-full md:mx-0">
+              <motion.div 
+                variants={staggerContainer(0.05)} 
+                initial="hidden" 
+                animate="show" 
+                className="flex flex-col gap-5 max-w-2xl mx-auto w-full md:mx-0"
+              >
                 {['Less than 3 days', '3 to 7 days', 'More than 7 days'].map(time => {
                   const isSelected = duration === time;
                   return (
-                    <FloatingCard
-                      key={time}
-                      hoverable
-                      onClick={() => setDuration(time)}
-                      className={clsx(
-                        "p-8 flex items-center justify-between border-2 transition-all rounded-3xl",
-                        isSelected ? "border-[var(--color-primary)] bg-[var(--color-primary-light)]/40 shadow-md shadow-[var(--color-primary)]/10" : "border-transparent"
-                      )}
-                    >
-                      <span className="text-2xl font-extrabold text-[var(--color-text-primary)]">{time}</span>
-                      <div className={clsx(
-                        "w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors",
-                        isSelected ? "border-[var(--color-primary)] bg-[var(--color-primary)] text-white" : "border-gray-200"
-                      )}>
-                        {isSelected && <Check size={18} strokeWidth={3} />}
-                      </div>
-                    </FloatingCard>
+                    <motion.div key={time} variants={scaleIn}>
+                      <FloatingCard
+                        hoverable
+                        onClick={() => setDuration(time)}
+                        className={clsx(
+                          "p-8 flex items-center justify-between border-2 transition-all duration-250 rounded-3xl cursor-pointer",
+                          isSelected ? "border-[var(--color-primary)] bg-[var(--color-primary-light)]/40 shadow-md shadow-[var(--color-primary)]/10" : "border-transparent bg-white"
+                        )}
+                      >
+                        <motion.div
+                          animate={{ scale: isSelected ? [1, 1.05, 1] : 1 }}
+                          transition={{ duration: 0.3 }}
+                          className="flex items-center justify-between w-full"
+                        >
+                          <span className={clsx("text-2xl font-extrabold transition-colors duration-250", isSelected ? "text-[var(--color-primary-dark)]" : "text-[var(--color-text-primary)]")}>{time}</span>
+                          <div className={clsx(
+                            "w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors duration-250",
+                            isSelected ? "border-[var(--color-primary)] bg-[var(--color-primary)] text-white" : "border-gray-200"
+                          )}>
+                            {isSelected && <Check size={18} strokeWidth={3} />}
+                          </div>
+                        </motion.div>
+                      </FloatingCard>
+                    </motion.div>
                   );
                 })}
-              </div>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
       <div className="mt-12 md:max-w-2xl md:mx-0 mx-auto w-full">
-        <Button 
+        <AnimatedButton 
           size="lg" 
           fullWidth 
           onClick={handleNext} 
@@ -189,7 +226,7 @@ export default function PatientAssessment() {
           className="h-16 text-xl rounded-2xl font-bold shadow-lg"
         >
           {step === 3 ? "Analyze Symptoms" : "Continue"}
-        </Button>
+        </AnimatedButton>
       </div>
 
     </div>

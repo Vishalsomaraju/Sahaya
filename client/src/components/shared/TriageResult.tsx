@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { AlertCircle, MapPin, ChevronDown, ChevronUp, FileText, Activity } from 'lucide-react';
 import FloatingCard from './FloatingCard';
-import Button from './Button';
+import AnimatedButton from './AnimatedButton';
 import { motion, AnimatePresence } from 'framer-motion';
+import { staggerContainer, slideInLeft } from '../../lib/animations';
 
 interface Facility {
   id: string;
@@ -58,10 +59,22 @@ export default function TriageResult({
     <div className="flex flex-col gap-8 w-full">
       
       {/* Urgency Block */}
-      <FloatingCard className="text-center flex flex-col items-center border-t-8 border-t-[var(--color-primary)] rounded-3xl p-10">
-        <div className={`px-6 py-2.5 rounded-full text-sm font-extrabold mb-8 tracking-widest ${getUrgencyColor()}`}>
-          {level.replace('_', ' ')}
-        </div>
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0, filter: "brightness(1.2)" }}
+        animate={{ scale: 1, opacity: 1, filter: "brightness(1)" }}
+        transition={{ type: "spring", stiffness: 200, damping: 20 }}
+      >
+        <FloatingCard className="text-center flex flex-col items-center border-t-8 border-t-[var(--color-primary)] rounded-3xl p-10 relative overflow-hidden">
+          {/* Subtle initial glow effect overlay */}
+          <motion.div
+            initial={{ opacity: 0.8 }}
+            animate={{ opacity: 0 }}
+            transition={{ duration: 1.5, ease: "easeOut" }}
+            className={`absolute inset-0 z-0 pointer-events-none ${getUrgencyColor().split(' ')[0]} mix-blend-overlay opacity-30`}
+          />
+          <div className={`relative z-10 px-6 py-2.5 rounded-full text-sm font-extrabold mb-8 tracking-widest ${getUrgencyColor()}`}>
+            {level.replace('_', ' ')}
+          </div>
         
         <h2 className="text-4xl md:text-5xl font-extrabold text-[var(--color-text-primary)] mb-5 tracking-tight">
           {title}
@@ -73,11 +86,12 @@ export default function TriageResult({
           <span className={`text-lg font-extrabold ${getRiskColor()}`}>{risk}</span>
         </div>
         
-        <div className="w-full bg-[var(--color-primary-light)]/30 rounded-3xl p-8 border border-[var(--color-primary)]/20">
+        <div className="relative z-10 w-full bg-[var(--color-primary-light)]/30 rounded-3xl p-8 border border-[var(--color-primary)]/20">
           <span className="text-sm text-[var(--color-text-muted)] block mb-3 font-extrabold uppercase tracking-widest">Recommended Action</span>
           <p className="text-2xl md:text-3xl text-[var(--color-primary-dark)] font-extrabold leading-tight">{nextAction}</p>
         </div>
       </FloatingCard>
+      </motion.div>
 
       {/* Why Section */}
       <FloatingCard className="p-0 overflow-hidden rounded-3xl border-2 border-gray-100">
@@ -103,14 +117,19 @@ export default function TriageResult({
               className="border-t-2 border-gray-100"
             >
               <div className="p-8">
-                <ul className="space-y-5">
+                <motion.ul 
+                  variants={staggerContainer(0.1)} 
+                  initial="hidden" 
+                  animate="show" 
+                  className="space-y-5"
+                >
                   {explanation.map((exp, idx) => (
-                    <li key={idx} className="flex gap-4 items-start text-lg font-medium text-[var(--color-text-primary)] leading-relaxed">
+                    <motion.li key={idx} variants={slideInLeft} transition={{ duration: 0.4 }} className="flex gap-4 items-start text-lg font-medium text-[var(--color-text-primary)] leading-relaxed">
                       <div className="w-2.5 h-2.5 rounded-full bg-[var(--color-primary)] mt-2 shrink-0 shadow-sm" />
                       <span>{exp}</span>
-                    </li>
+                    </motion.li>
                   ))}
-                </ul>
+                </motion.ul>
               </div>
             </motion.div>
           )}
@@ -144,17 +163,17 @@ export default function TriageResult({
       )}
 
       {level === 'VIDEO_CONSULT' && onConnectDoctor && (
-        <Button 
+        <AnimatedButton 
           size="lg"
           onClick={onConnectDoctor}
           className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white text-xl font-bold h-20 shadow-xl shadow-[var(--color-primary)]/20 rounded-2xl"
         >
           Connect to Doctor Now
-        </Button>
+        </AnimatedButton>
       )}
 
       {/* Actions */}
-      <Button 
+      <AnimatedButton 
         variant="outline"
         size="lg"
         onClick={onDownloadSummary}
@@ -162,7 +181,7 @@ export default function TriageResult({
       >
         <FileText size={24} className="mr-3" />
         View Patient Summary
-      </Button>
+      </AnimatedButton>
 
     </div>
   );

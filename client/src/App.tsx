@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { AnimatePresence, MotionConfig } from "framer-motion";
 import AppShell from "./components/layout/AppShell";
 import Landing from "./pages/Landing";
 
@@ -22,10 +23,12 @@ import DoctorCaseReview from "./pages/doctor/DoctorCaseReview";
 import DoctorPatients from "./pages/doctor/DoctorPatients";
 import DoctorConsultations from "./pages/doctor/DoctorConsultations";
 
-function App() {
+function AnimatedRoutes() {
+  const location = useLocation();
+
   return (
-    <BrowserRouter>
-      <Routes>
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
         <Route path="/" element={<Landing />} />
 
         <Route element={<AppShell />}>
@@ -52,7 +55,17 @@ function App() {
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </BrowserRouter>
+    </AnimatePresence>
+  );
+}
+
+function App() {
+  return (
+    <MotionConfig reducedMotion="user">
+      <BrowserRouter>
+        <AnimatedRoutes />
+      </BrowserRouter>
+    </MotionConfig>
   );
 }
 

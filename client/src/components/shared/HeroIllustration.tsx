@@ -33,7 +33,7 @@ export default function HeroIllustration({
         <motion.path
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+          transition={{ type: "spring", stiffness: 80, damping: 12, delay: 0.1 }}
           d="M110 60 C220 -10 380 10 440 110 C500 210 470 340 370 400 C270 460 130 440 70 350 C10 260 0 130 110 60 Z"
           fill="url(#blobFill)"
         />
@@ -42,7 +42,7 @@ export default function HeroIllustration({
         <motion.path
           initial={{ pathLength: 0, opacity: 0 }}
           animate={{ pathLength: 1, opacity: 0.6 }}
-          transition={{ duration: 1.2, delay: 0.3 }}
+          transition={{ duration: 1.5, delay: 0.3 }}
           d="M40 120 Q65 95 95 115 T150 105"
           stroke="var(--color-primary, #2E9188)"
           strokeWidth="3"
@@ -52,7 +52,7 @@ export default function HeroIllustration({
         <motion.path
           initial={{ pathLength: 0, opacity: 0 }}
           animate={{ pathLength: 1, opacity: 0.5 }}
-          transition={{ duration: 1.2, delay: 0.5 }}
+          transition={{ duration: 1.5, delay: 0.5 }}
           d="M400 380 Q430 400 420 430"
           stroke="var(--color-warning, #F59E0B)"
           strokeWidth="3"
@@ -115,22 +115,27 @@ export default function HeroIllustration({
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.6 }}
         >
-          <circle
-            cx="440"
-            cy="90"
-            r="26"
-            fill="white"
-            stroke="#EDEDED"
-            strokeWidth="1"
-          />
-          <path
-            d="M430 90 h6 l4 -10 l6 20 l4 -10 h6"
-            fill="none"
-            stroke="var(--color-danger, #E4572E)"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
+          <motion.g
+            animate={{ y: [0, -6, 0] }}
+            transition={{ repeat: Infinity, repeatType: "mirror", duration: 3.5, ease: "easeInOut", delay: 1.2 }}
+          >
+            <circle
+              cx="440"
+              cy="90"
+              r="26"
+              fill="white"
+              stroke="#EDEDED"
+              strokeWidth="1"
+            />
+            <path
+              d="M430 90 h6 l4 -10 l6 20 l4 -10 h6"
+              fill="none"
+              stroke="var(--color-danger, #E4572E)"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </motion.g>
         </motion.g>
 
         <motion.g
@@ -138,24 +143,29 @@ export default function HeroIllustration({
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.75 }}
         >
-          <circle
-            cx="90"
-            cy="330"
-            r="24"
-            fill="white"
-            stroke="#EDEDED"
-            strokeWidth="1"
-          />
-          <path
-            d="M78 330 c0 -8 12 -8 12 0 c0 8 -12 8 -12 0"
-            fill="var(--color-primary, #2E9188)"
-          />
-          <path
-            d="M90 322 v-8 M86 318 h8"
-            stroke="var(--color-primary, #2E9188)"
-            strokeWidth="2"
-            strokeLinecap="round"
-          />
+          <motion.g
+            animate={{ y: [0, -6, 0] }}
+            transition={{ repeat: Infinity, repeatType: "mirror", duration: 4, ease: "easeInOut", delay: 1.5 }}
+          >
+            <circle
+              cx="90"
+              cy="330"
+              r="24"
+              fill="white"
+              stroke="#EDEDED"
+              strokeWidth="1"
+            />
+            <path
+              d="M78 330 c0 -8 12 -8 12 0 c0 8 -12 8 -12 0"
+              fill="var(--color-primary, #2E9188)"
+            />
+            <path
+              d="M90 322 v-8 M86 318 h8"
+              stroke="var(--color-primary, #2E9188)"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </motion.g>
         </motion.g>
 
         <motion.g
@@ -163,20 +173,25 @@ export default function HeroIllustration({
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.9, type: "spring" }}
         >
-          <circle
-            cx="440"
-            cy="360"
-            r="22"
-            fill="var(--color-primary, #2E9188)"
-          />
-          <path
-            d="M430 360 l7 7 l13 -13"
-            fill="none"
-            stroke="white"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
+          <motion.g
+            animate={{ y: [0, -6, 0] }}
+            transition={{ repeat: Infinity, repeatType: "mirror", duration: 3.2, ease: "easeInOut", delay: 1.7 }}
+          >
+            <circle
+              cx="440"
+              cy="360"
+              r="22"
+              fill="var(--color-primary, #2E9188)"
+            />
+            <path
+              d="M430 360 l7 7 l13 -13"
+              fill="none"
+              stroke="white"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </motion.g>
         </motion.g>
       </svg>
     </div>

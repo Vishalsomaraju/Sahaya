@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -9,15 +9,19 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   fullWidth?: boolean;
 }
 
-export default function Button({ 
-  children, 
-  variant = "primary", 
-  size = "md", 
-  fullWidth = false,
-  className,
-  ...props 
-}: ButtonProps) {
-  const baseClasses = "inline-flex items-center justify-center rounded-[16px] font-medium transition-all duration-200 active:scale-[0.98]";
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  (
+    { 
+      children, 
+      variant = "primary", 
+      size = "md", 
+      fullWidth = false,
+      className,
+      ...props 
+    },
+    ref
+  ) => {
+    const baseClasses = "inline-flex items-center justify-center rounded-[16px] font-medium transition-all duration-200 active:scale-[0.98]";
   
   const variants = {
     primary: "bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white shadow-sm hover:shadow",
@@ -34,6 +38,7 @@ export default function Button({
 
   return (
     <button 
+      ref={ref}
       className={twMerge(
         clsx(
           baseClasses,
@@ -49,4 +54,6 @@ export default function Button({
       {children}
     </button>
   );
-}
+});
+
+export default Button;
