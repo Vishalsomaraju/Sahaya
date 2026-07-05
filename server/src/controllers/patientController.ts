@@ -8,24 +8,40 @@ export const recordWearableVitals = async (req: Request, res: Response) => {
     const validatedData = wearableVitalsSchema.parse(req.body);
     console.log('[WEARABLE] Received vitals payload:', validatedData);
 
-    let patientId = validatedData.patientId;
+    const defaultPatientId = process.env.WEARABLE_DEFAULT_PATIENT || 'demo-patient';
+    let patientId = validatedData.patientId || defaultPatientId;
     
-    // Configurable mapping fallback for hackathon
-    if (!patientId) {
-      patientId = process.env.WEARABLE_DEFAULT_PATIENT || 'demo-patient';
-    } else {
-      // check if patient exists, if not fallback
-      const userExists = await prisma.user.findUnique({ where: { id: patientId } });
-      if (!userExists) {
-        console.warn(`[WEARABLE] Patient ${patientId} not found, falling back to default`);
-        patientId = process.env.WEARABLE_DEFAULT_PATIENT || 'demo-patient';
-        // Wait, if the default patient doesn't exist we might get a foreign key error.
-        // We'll trust the default patient exists or the DB handles it if patientId is optional or it exists.
-        // Wait, in my schema update patientId is optional! So if no valid patient is found, we can just leave it null.
-        const defaultUserExists = await prisma.user.findUnique({ where: { id: patientId } });
-        if (!defaultUserExists) {
-           patientId = undefined; // use optional
-        }
+    // Check if patient exists
+    let userExists = await prisma.user.findUnique({ where: { id: patientId } });
+    
+    if (!userExists && patientId !== defaultPatientId) {
+      console.warn(`[WEARABLE] Patient ${patientId} not found, falling back to default`);
+      patientId = defaultPatientId;
+      userExists = await prisma.user.findUnique({ where: { id: patientId } });
+    }
+
+    if (!userExists) {
+      console.warn(`[WEARABLE] Default patient ${patientId} not found. Creating it automatically.`);
+      try {
+        await prisma.user.create({
+          data: {
+            id: patientId,
+            name: 'Demo Patient',
+            phone: `+1000000${Math.floor(Math.random() * 10000)}`, // Randomize slightly to avoid unique constraint if recreated
+            passwordHash: 'demo',
+            role: 'PATIENT',
+            patientProfile: {
+              create: {
+                dateOfBirth: new Date('1990-01-01'),
+                gender: 'Unspecified',
+                villageSector: 'Demo Village'
+              }
+            }
+          }
+        });
+      } catch (err) {
+        console.error('[WEARABLE] Failed to create demo patient:', err);
+        return res.status(500).json({ success: false, error: 'Failed to create demo patient' });
       }
     }
 
