@@ -1,5 +1,19 @@
+# Dependencies
 node_modules/
-.env
+
+# Production Builds
 dist/
 build/
+
+# Environment Variables & Secrets (Keep private secrets out of source control)
+.env
+.env.local
+.env.*
+!.env.example
+*.env
+!*.env.example
+
+# Neon & System Context
+.neon
 .DS_Store
+Thumbs.db

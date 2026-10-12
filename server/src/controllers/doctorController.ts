@@ -26,9 +26,10 @@ export const getDoctorCases = async (req: Request, res: Response) => {
       ];
     }
 
-    const [cases, totalCount, emergencyCount, visitPhcCount, videoConsultCount, pendingCount, reviewedCount] = await Promise.all([
+    const [cases, triageGroups, statusGroups] = await Promise.all([
       prisma.assessment.findMany({
         where,
+        take: 50,
         orderBy: [
           { priority: 'desc' },
           { createdAt: 'desc' },
@@ -65,22 +66,39 @@ export const getDoctorCases = async (req: Request, res: Response) => {
             orderBy: { recordedAt: 'desc' },
             take: 1,
           },
-          consultations: {
-            orderBy: { scheduledAt: 'desc' },
-            take: 1,
-            include: {
-              doctor: { select: { id: true, name: true } },
-            },
-          },
         },
       }),
-      prisma.assessment.count(),
-      prisma.assessment.count({ where: { triageLevel: 'EMERGENCY' } }),
-      prisma.assessment.count({ where: { triageLevel: 'VISIT_PHC' } }),
-      prisma.assessment.count({ where: { triageLevel: 'VIDEO_CONSULT' } }),
-      prisma.assessment.count({ where: { status: 'PENDING' } }),
-      prisma.assessment.count({ where: { status: { in: ['REVIEWED', 'RESOLVED'] } } }),
+      prisma.assessment.groupBy({
+        by: ['triageLevel'],
+        _count: { _all: true },
+      }),
+      prisma.assessment.groupBy({
+        by: ['status'],
+        _count: { _all: true },
+      }),
     ]);
+
+    let emergencyCount = 0;
+    let visitPhcCount = 0;
+    let videoConsultCount = 0;
+    let totalCount = 0;
+
+    for (const g of triageGroups) {
+      const count = g._count._all;
+      totalCount += count;
+      if (g.triageLevel === 'EMERGENCY') emergencyCount = count;
+      else if (g.triageLevel === 'VISIT_PHC') visitPhcCount = count;
+      else if (g.triageLevel === 'VIDEO_CONSULT') videoConsultCount = count;
+    }
+
+    let pendingCount = 0;
+    let reviewedCount = 0;
+
+    for (const s of statusGroups) {
+      const count = s._count._all;
+      if (s.status === 'PENDING') pendingCount = count;
+      else if (s.status === 'REVIEWED' || s.status === 'RESOLVED') reviewedCount += count;
+    }
 
     const formattedCases = cases.map((c) => {
       let age = 30;
@@ -117,7 +135,7 @@ export const getDoctorCases = async (req: Request, res: Response) => {
         aiSummary: aiSummaryParsed,
         vitals: c.vitals,
         latestVitalsLog: c.vitalsLog[0] || null,
-        latestConsultation: c.consultations[0] || null,
+        latestConsultation: null,
         createdAt: c.createdAt,
       };
     });
@@ -315,6 +333,7 @@ export const getDoctorPatients = async (req: Request, res: Response) => {
   try {
     const patients = await prisma.user.findMany({
       where: { role: 'PATIENT' },
+      take: 50,
       select: {
         id: true,
         name: true,
@@ -375,6 +394,7 @@ export const getDoctorPatients = async (req: Request, res: Response) => {
 export const getDoctorConsultations = async (req: Request, res: Response) => {
   try {
     const consultations = await prisma.consultation.findMany({
+      take: 50,
       orderBy: { scheduledAt: 'desc' },
       include: {
         patient: {

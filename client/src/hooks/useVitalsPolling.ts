@@ -15,18 +15,36 @@ export interface VitalsData {
   recordedAt?: string;
 }
 
-export const useVitalsPolling = (patientId: string = 'demo-patient', intervalMs: number = 3000) => {
+const DEFAULT_PATIENT_ID = (import.meta.env.VITE_DEFAULT_PATIENT_ID as string) || 'demo-patient';
+const DEFAULT_INTERVAL_MS = Number(import.meta.env.VITE_POLL_INTERVAL_MS) || 6000;
+const POLLING_ENABLED = import.meta.env.VITE_ENABLE_WEARABLE_POLLING !== 'false';
+
+export const useVitalsPolling = (
+  patientId: string = DEFAULT_PATIENT_ID, 
+  intervalMs: number = DEFAULT_INTERVAL_MS,
+  enabled: boolean = POLLING_ENABLED
+) => {
   const [vitals, setVitals] = useState<VitalsData | null>(null);
   const [isMock, setIsMock] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(enabled);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!enabled || !patientId) {
+      setLoading(false);
+      return;
+    }
+
     let mounted = true;
 
     const fetchVitals = async () => {
+      // Avoid polling when tab is in background
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+        return;
+      }
+
       try {
-        const response = await fetch(`${API_BASE_URL}/api/patient/${patientId}/latest-vitals`);
+        const response = await fetch(`${API_BASE_URL}/api/patient/${encodeURIComponent(patientId)}/latest-vitals`);
         if (!response.ok) throw new Error('Failed to fetch vitals');
         
         const data = await response.json();
@@ -52,7 +70,7 @@ export const useVitalsPolling = (patientId: string = 'demo-patient', intervalMs:
       mounted = false;
       clearInterval(interval);
     };
-  }, [patientId, intervalMs]);
+  }, [patientId, intervalMs, enabled]);
 
   return { vitals, isMock, loading, error };
 };

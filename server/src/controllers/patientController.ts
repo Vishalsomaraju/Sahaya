@@ -148,12 +148,19 @@ export const getDashboard = async (req: Request, res: Response) => {
   try {
     const patientId = req.user!.id;
 
-    // Fetch latest vitals via the latest assessment
-    const latestAssessment = await prisma.assessment.findFirst({
-      where: { patientId },
-      orderBy: { createdAt: 'desc' },
-      include: { vitalsLog: { orderBy: { recordedAt: 'desc' }, take: 1 } }
-    });
+    // Fetch latest vitals and upcoming consultation concurrently
+    const [latestAssessment, upcomingConsultation] = await Promise.all([
+      prisma.assessment.findFirst({
+        where: { patientId },
+        orderBy: { createdAt: 'desc' },
+        include: { vitalsLog: { orderBy: { recordedAt: 'desc' }, take: 1 } }
+      }),
+      prisma.consultation.findFirst({
+        where: { patientId, status: 'SCHEDULED' },
+        orderBy: { scheduledAt: 'asc' },
+        include: { doctor: { select: { name: true } } }
+      })
+    ]);
 
     let vitals = null;
     if (latestAssessment?.vitalsLog.length) {
@@ -169,13 +176,6 @@ export const getDashboard = async (req: Request, res: Response) => {
         recordedAt: v.recordedAt
       };
     }
-
-    // Fetch upcoming consultation
-    const upcomingConsultation = await prisma.consultation.findFirst({
-      where: { patientId, status: 'SCHEDULED' },
-      orderBy: { scheduledAt: 'asc' },
-      include: { doctor: { select: { name: true } } }
-    });
 
     return res.status(200).json({
       data: {

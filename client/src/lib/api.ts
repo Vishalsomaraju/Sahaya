@@ -3,7 +3,41 @@
  * Centralized HTTP service for backend triage and assessment communication.
  */
 
-export const API_BASE_URL = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/+$/, '') || 'http://localhost:5000';
+/**
+ * Resolves the active backend API URL based on runtime environment:
+ * 1. Checks `localStorage.getItem('sahaya_api_override')` for dynamic tunneling or testing.
+ * 2. If running on Vercel or any cloud domain, defaults to Render backend (https://sahaya-ag6r.onrender.com).
+ * 3. If running on localhost, defaults to local server (http://localhost:5000) or explicit VITE_API_URL.
+ */
+const resolveApiBaseUrl = (): string => {
+  if (typeof window !== 'undefined') {
+    const override = localStorage.getItem('sahaya_api_override');
+    if (override && override.trim()) {
+      return override.trim().replace(/\/+$/, '');
+    }
+  }
+
+  const envUrl = (import.meta.env.VITE_API_URL as string | undefined)?.trim();
+
+  // If in browser and deployed on Vercel or cloud domain (non-localhost)
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    // If VITE_API_URL is explicitly set to a remote domain, honor it
+    if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
+      return envUrl.replace(/\/+$/, '');
+    }
+    // Cloud fallback: Render production backend
+    return 'https://sahaya-ag6r.onrender.com';
+  }
+
+  // Local development fallback
+  if (envUrl) {
+    return envUrl.replace(/\/+$/, '');
+  }
+
+  return 'http://localhost:5000';
+};
+
+export const API_BASE_URL = resolveApiBaseUrl();
 
 const PATIENT_TOKEN_KEY = 'sahaya_patient_jwt';
 const ASHA_TOKEN_KEY = 'sahaya_asha_jwt';

@@ -71,7 +71,11 @@ export default function DoctorDashboard() {
 
   // Priority case
   const nextCase = cases.find(c => c.status === 'PENDING') || cases[0];
-  const { vitals, isMock, loading: vitalsLoading, error: vitalsError } = useVitalsPolling(nextCase?.patientId || 'demo-patient');
+  const { vitals, isMock, loading: vitalsLoading, error: vitalsError } = useVitalsPolling(
+    nextCase?.patientId || '', 
+    6000, 
+    !loadingCases && !!nextCase?.patientId
+  );
 
   // Counts derived from live cases
   const totalCasesCount = cases.length;

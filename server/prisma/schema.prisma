@@ -115,6 +115,7 @@ model Assessment {
   @@index([triageLevel])
   @@index([createdAt])
   @@index([patientId])
+  @@index([submittedById])
 }
 
 model Vitals {
@@ -137,6 +138,7 @@ model Vitals {
   patient    User?       @relation(fields: [patientId], references: [id], onDelete: Cascade)
 
   @@index([patientId])
+  @@index([assessmentId])
 }
 
 model Consultation {
@@ -154,6 +156,9 @@ model Consultation {
 
   @@index([status])
   @@index([scheduledAt])
+  @@index([doctorId])
+  @@index([patientId])
+  @@index([assessmentId])
 }
 
 model Facility {
