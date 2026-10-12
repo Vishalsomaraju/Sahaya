@@ -10,6 +10,8 @@ build/
 .env.local
 .env.*
 !.env.example
+!.env.production
+!client/.env.production
 *.env
 !*.env.example
 
