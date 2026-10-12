@@ -196,53 +196,168 @@ export const getDashboard = async (req: Request, res: Response) => {
 
 export const createAssessment = async (req: Request, res: Response) => {
   try {
-    const patientId = req.user!.id;
+    const authenticatedUser = req.user!;
     const validatedData = createAssessmentSchema.parse(req.body);
 
-    const assessment = await prisma.assessment.create({
-      data: {
-        patientId,
-        submittedById: patientId, // Patient submits for themselves
-        symptoms: validatedData.symptoms,
-        priority: 'MEDIUM', // default until AI sorts it
-        status: 'PENDING'
+    // Enforce patient identity: Patients can only submit for themselves.
+    // An ASHA worker may submit on behalf of an existing registered patient.
+    let targetPatientId = authenticatedUser.id;
+    if (authenticatedUser.role === 'ASHA' && validatedData.patientId) {
+      const patientExists = await prisma.user.findUnique({
+        where: { id: validatedData.patientId }
+      });
+      if (!patientExists) {
+        return res.status(404).json({ success: false, data: null, error: 'Target patient not found' });
       }
+      targetPatientId = validatedData.patientId;
+    }
+
+    // Evaluate triage using safety-first deterministic engine
+    const triage = await generateTriageRecommendation({
+      symptoms: validatedData.symptoms,
+      severity: validatedData.severity,
+      duration: validatedData.duration,
+      vitals: validatedData.vitals,
+      notes: validatedData.notes
     });
 
-    // Fire and forget or await the triage result
-    // We will await it here to return the updated assessment
-    const triage = await generateTriageRecommendation(validatedData.symptoms);
-    
-    // Update the assessment with triage result
-    const updatedAssessment = await prisma.assessment.update({
-      where: { id: assessment.id },
-      data: {
+    // Execute atomic transaction for assessment creation and optional linked vitals log
+    const assessment = await prisma.$transaction(async (tx) => {
+      const created = await tx.assessment.create({
+        data: {
+          patientId: targetPatientId,
+          submittedById: authenticatedUser.id,
+          symptoms: validatedData.symptoms,
+          severity: validatedData.severity || null,
+          duration: validatedData.duration || null,
+          triageLevel: triage.triageLevel,
+          priority: triage.priority,
+          vitals: validatedData.vitals
+            ? { ...validatedData.vitals, source: validatedData.vitals.source || 'manual' }
+            : undefined,
+          aiSummary: JSON.stringify({
+            triageLevel: triage.triageLevel,
+            reasoning: triage.reasoning,
+            nextSteps: triage.nextSteps,
+            limitations: triage.limitations,
+            escalationGuidance: triage.escalationGuidance,
+            vitalsAssessment: triage.vitalsAssessment
+          }),
+          aiRecommendation: triage.recommendedAction,
+          status: 'PENDING'
+        }
+      });
+
+      // If valid vitals were supplied, record linked entry in Vitals table
+      if (validatedData.vitals && Object.keys(validatedData.vitals).length > 0) {
+        const v = validatedData.vitals;
+        await tx.vitals.create({
+          data: {
+            assessmentId: created.id,
+            patientId: targetPatientId,
+            device: v.device || (v.source === 'wearable' ? 'Wearable Device' : 'Clinical Entry'),
+            heartRate: v.heartRate ?? null,
+            restingHeartRate: v.restingHeartRate ?? null,
+            spo2: v.spo2 ?? null,
+            temperature: v.temperature ?? null,
+            bloodPressure: v.bloodPressure ?? null,
+            recordedAt: new Date()
+          }
+        });
+      }
+
+      return created;
+    });
+
+    return res.status(201).json({
+      success: true,
+      data: assessment,
+      triage: {
+        triageLevel: triage.triageLevel,
         priority: triage.priority,
-        aiSummary: JSON.stringify({ reasoning: triage.reasoning, nextSteps: triage.nextSteps }),
-        aiRecommendation: triage.recommendedAction
-      }
+        recommendedAction: triage.recommendedAction,
+        reasoning: triage.reasoning,
+        nextSteps: triage.nextSteps,
+        limitations: triage.limitations,
+        escalationGuidance: triage.escalationGuidance,
+        vitalsAssessment: triage.vitalsAssessment,
+        disclaimer: triage.disclaimer
+      },
+      error: null
     });
-
-    return res.status(201).json({ data: updatedAssessment, error: null });
   } catch (error: any) {
     if (error.name === 'ZodError') {
-      return res.status(400).json({ data: null, error: error.errors });
+      return res.status(400).json({
+        success: false,
+        data: null,
+        error: error.errors.map((e: any) => ({
+          field: e.path.join('.'),
+          message: e.message
+        }))
+      });
     }
-    console.error(error);
-    return res.status(500).json({ data: null, error: 'Internal server error' });
+    console.error('[createAssessment error]:', error);
+    return res.status(500).json({ success: false, data: null, error: 'Internal server error' });
+  }
+};
+
+export const getCommunityPatients = async (req: Request, res: Response) => {
+  try {
+    const patients = await prisma.user.findMany({
+      where: { role: 'PATIENT' },
+      select: {
+        id: true,
+        name: true,
+        phone: true,
+        patientProfile: {
+          select: {
+            dateOfBirth: true,
+            gender: true,
+            villageSector: true
+          }
+        }
+      },
+      orderBy: { name: 'asc' }
+    });
+
+    const data = patients.map((p) => {
+      let age = 30;
+      if (p.patientProfile?.dateOfBirth) {
+        const birthYear = new Date(p.patientProfile.dateOfBirth).getFullYear();
+        age = new Date().getFullYear() - birthYear;
+      }
+      return {
+        id: p.id,
+        name: p.name,
+        phone: p.phone,
+        age,
+        gender: p.patientProfile?.gender || 'unknown',
+        village: p.patientProfile?.villageSector || 'Rampur'
+      };
+    });
+
+    return res.status(200).json({ success: true, data, error: null });
+  } catch (error) {
+    console.error('[getCommunityPatients error]:', error);
+    return res.status(500).json({ success: false, data: null, error: 'Internal server error' });
   }
 };
 
 export const getAssessments = async (req: Request, res: Response) => {
   try {
-    const patientId = req.user!.id;
+    const userId = req.user!.id;
+    const userRole = req.user!.role;
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
     const skip = (page - 1) * limit;
 
+    const whereClause = userRole === 'ASHA'
+      ? { OR: [{ submittedById: userId }, { patientId: userId }] }
+      : { patientId: userId };
+
     const [assessments, total] = await Promise.all([
       prisma.assessment.findMany({
-        where: { patientId },
+        where: whereClause,
         orderBy: { createdAt: 'desc' },
         skip,
         take: limit,
@@ -250,11 +365,27 @@ export const getAssessments = async (req: Request, res: Response) => {
           id: true,
           status: true,
           priority: true,
+          triageLevel: true,
+          severity: true,
+          duration: true,
+          aiRecommendation: true,
           createdAt: true,
-          symptoms: true
+          symptoms: true,
+          patient: {
+            select: {
+              id: true,
+              name: true,
+              patientProfile: {
+                select: {
+                  villageSector: true,
+                  dateOfBirth: true
+                }
+              }
+            }
+          }
         }
       }),
-      prisma.assessment.count({ where: { patientId } })
+      prisma.assessment.count({ where: whereClause })
     ]);
 
     return res.status(200).json({
@@ -348,7 +479,7 @@ export const getTriageResult = async (req: Request, res: Response) => {
       return res.status(404).json({ data: null, error: 'Assessment not found' });
     }
 
-    let summaryObj = { reasoning: [], nextSteps: [] };
+    let summaryObj: any = { reasoning: [], nextSteps: [] };
     if (assessment.aiSummary) {
       try {
         summaryObj = JSON.parse(assessment.aiSummary);
@@ -358,11 +489,15 @@ export const getTriageResult = async (req: Request, res: Response) => {
     }
 
     const triageResult = {
+      triageLevel: summaryObj.triageLevel || (assessment.priority === 'HIGH' ? 'VISIT_PHC' : assessment.priority === 'MEDIUM' ? 'VIDEO_CONSULT' : 'SELF_CARE'),
       priority: assessment.priority,
       recommendedAction: assessment.aiRecommendation,
-      reasoning: summaryObj.reasoning,
-      nextSteps: summaryObj.nextSteps,
-      disclaimer: "This is not a diagnosis. Our AI provides triage recommendation only."
+      reasoning: summaryObj.reasoning || [],
+      nextSteps: summaryObj.nextSteps || [],
+      limitations: summaryObj.limitations || [],
+      escalationGuidance: summaryObj.escalationGuidance || '',
+      vitalsAssessment: summaryObj.vitalsAssessment || undefined,
+      disclaimer: "This is an algorithmic triage recommendation for informational guidance only. It does not provide a definitive medical diagnosis and does not replace professional clinical evaluation by a qualified healthcare provider."
     };
 
     return res.status(200).json({ data: triageResult, error: null });

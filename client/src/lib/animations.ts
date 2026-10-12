@@ -1,19 +1,19 @@
 import { useReducedMotion } from "framer-motion";
 import type { Variants } from "framer-motion";
 
-// Custom Bezier curve for a smooth "easeOutExpo" feel
-export const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
+// Clinical cubic-bezier curve for crisp, authoritative motion
+export const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
-// Standardized durations - increased by ~50% for a graceful, premium healthcare feel
+// Restrained durations for efficient healthcare workflows
 export const DURATION = {
-  fast: 0.25,   // Micro-interactions (hover, tap)
-  base: 0.45,   // Standard transitions (cards, small elements)
-  slow: 0.7,    // Entrance animations (heroes, modals)
-  slower: 1.0,  // Large, majestic page loads
+  fast: 0.15,   // Micro-interactions (hover, active)
+  base: 0.25,   // Standard transitions (cards, tabs)
+  slow: 0.35,   // Subtle panel entries
+  slower: 0.5,  // Page transitions
 };
 
 export const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 8 },
   show: { 
     opacity: 1, 
     y: 0, 
@@ -30,7 +30,7 @@ export const fadeIn: Variants = {
 };
 
 export const scaleIn: Variants = {
-  hidden: { opacity: 0, scale: 0.95 },
+  hidden: { opacity: 0, scale: 0.98 },
   show: { 
     opacity: 1, 
     scale: 1, 
@@ -39,7 +39,7 @@ export const scaleIn: Variants = {
 };
 
 export const slideInLeft: Variants = {
-  hidden: { opacity: 0, x: -20 },
+  hidden: { opacity: 0, x: -8 },
   show: { 
     opacity: 1, 
     x: 0, 
@@ -48,7 +48,7 @@ export const slideInLeft: Variants = {
 };
 
 export const slideInRight: Variants = {
-  hidden: { opacity: 0, x: 20 },
+  hidden: { opacity: 0, x: 8 },
   show: { 
     opacity: 1, 
     x: 0, 
@@ -58,17 +58,16 @@ export const slideInRight: Variants = {
 
 export const cardHover: Variants = {
   hover: { 
-    y: -4, 
-    scale: 1.02,
+    y: -2, 
     transition: { duration: DURATION.fast, ease: EASE }
   },
   tap: { 
-    scale: 0.98,
+    scale: 0.99,
     transition: { duration: DURATION.fast, ease: EASE }
   },
 };
 
-export const staggerContainer = (staggerAmount = 0.08, delayChildren = 0.1): Variants => ({
+export const staggerContainer = (staggerAmount = 0.05, delayChildren = 0.05): Variants => ({
   hidden: {},
   show: {
     transition: {
@@ -85,8 +84,6 @@ export const staggerContainer = (staggerAmount = 0.08, delayChildren = 0.1): Var
 export const useSahayaAnimations = () => {
   const shouldReduceMotion = useReducedMotion();
 
-  // If the user prefers reduced motion, we strip the transform animations
-  // and dramatically shorten the durations to just a quick fade.
   const applyReducedMotion = (variants: Variants): Variants => {
     if (!shouldReduceMotion) return variants;
 
@@ -110,7 +107,7 @@ export const useSahayaAnimations = () => {
     scaleIn: applyReducedMotion(scaleIn),
     slideInLeft: applyReducedMotion(slideInLeft),
     slideInRight: applyReducedMotion(slideInRight),
-    cardHover: shouldReduceMotion ? {} : cardHover, // Disable hover scaling for accessibility
+    cardHover: shouldReduceMotion ? {} : cardHover,
     staggerContainer: shouldReduceMotion ? () => ({ hidden: {}, show: {} }) : staggerContainer,
   };
 };

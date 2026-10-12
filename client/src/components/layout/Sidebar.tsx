@@ -1,5 +1,17 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, Stethoscope, UserCircle, ClipboardList, Calendar, Users, Settings } from 'lucide-react';
+import { 
+  LayoutDashboard, 
+  Users, 
+  Stethoscope, 
+  ClipboardList, 
+  Calendar, 
+  UserCircle, 
+  Settings, 
+  Activity,
+  ShieldCheck,
+  ChevronRight,
+  ExternalLink
+} from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -11,70 +23,174 @@ export default function Sidebar() {
   const isDoctor = location.pathname.startsWith('/doctor');
   const isPatient = location.pathname.startsWith('/patient');
 
-  let navItems = [];
+  let navItems: { label: string; icon: any; path: string; badge?: string }[] = [];
+  let roleTitle = "Clinical Portal";
+  let roleBadge = "Staff";
   
   if (isDoctor) {
+    roleTitle = "Doctor Workspace";
+    roleBadge = "MD";
     navItems = [
-      { label: 'Dashboard', icon: Home, path: '/doctor' },
-      { label: 'Patients', icon: Users, path: '/doctor/patients' },
+      { label: 'Dashboard', icon: LayoutDashboard, path: '/doctor' },
+      { label: 'Patient Queue', icon: Users, path: '/doctor/patients', badge: '3' },
       { label: 'Consultations', icon: Stethoscope, path: '/doctor/consultations' },
     ];
   } else if (isAsha) {
+    roleTitle = "ASHA Health Desk";
+    roleBadge = "Field";
     navItems = [
-      { label: 'Dashboard', icon: Home, path: '/asha' },
+      { label: 'Dashboard', icon: LayoutDashboard, path: '/asha' },
       { label: 'Assessments', icon: ClipboardList, path: '/asha/assessments' },
       { label: 'Patients', icon: Users, path: '/asha/patients' },
     ];
   } else if (isPatient) {
+    roleTitle = "Patient Portal";
+    roleBadge = "User";
     navItems = [
-      { label: 'Home', icon: Home, path: '/patient' },
-      { label: 'History', icon: ClipboardList, path: '/patient/history' },
+      { label: 'Overview', icon: LayoutDashboard, path: '/patient' },
+      { label: 'Health History', icon: ClipboardList, path: '/patient/history' },
       { label: 'Reminders', icon: Calendar, path: '/patient/reminders' },
-      { label: 'Profile', icon: UserCircle, path: '/patient/profile' },
+      { label: 'Health Profile', icon: UserCircle, path: '/patient/profile' },
     ];
   } else {
     return null; // Don't show sidebar on landing
   }
 
   return (
-    <aside className="hidden md:flex flex-col w-[280px] bg-[#f8fafc] border-r border-gray-200 h-screen sticky top-0">
-      <div className="flex items-center gap-4 p-8 cursor-pointer" onClick={() => navigate('/')}>
-        <div className="flex items-center justify-center bg-gradient-to-br from-[var(--color-primary)] to-[#4fd1c5] text-white w-12 h-12 rounded-[18px] shadow-lg shadow-[var(--color-primary)]/20">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="currentColor"/>
-            <path d="M7 11h2.5L11 7l3 10 1.5-4H18" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+    <aside className="hidden md:flex flex-col w-[260px] bg-white border-r border-slate-200 h-screen sticky top-0 shrink-0 select-none z-30">
+      {/* Brand Header */}
+      <div 
+        className="flex items-center gap-3 px-5 py-5 border-b border-slate-100 cursor-pointer hover:bg-slate-50/50 transition-colors"
+        onClick={() => navigate('/')}
+        title="Return to SAHAYA Home"
+      >
+        <div className="flex items-center justify-center bg-[var(--color-primary)] text-white w-9 h-9 rounded-lg shadow-sm">
+          <Activity size={20} strokeWidth={2.5} />
         </div>
-        <span className="text-3xl font-black tracking-tighter text-slate-900">SAHAYA</span>
+        <div className="flex flex-col">
+          <div className="flex items-center gap-1.5">
+            <span className="text-base font-bold tracking-tight text-slate-900">SAHAYA</span>
+            <span className="text-[10px] font-semibold px-1.5 py-0.2 bg-teal-50 text-[var(--color-primary-dark)] border border-teal-200 rounded">
+              {roleBadge}
+            </span>
+          </div>
+          <span className="text-[11px] text-slate-500 font-medium">Healthcare Tele-Triage</span>
+        </div>
+      </div>
+
+      {/* Role Context Bar */}
+      <div className="px-5 py-3 bg-slate-50/70 border-b border-slate-100 flex items-center justify-between text-xs">
+        <span className="font-semibold text-slate-600">{roleTitle}</span>
+        <span className="flex items-center gap-1 text-[11px] text-emerald-600 font-medium">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          Active
+        </span>
       </div>
       
-      <nav className="flex-1 px-5 mt-4 space-y-1">
+      {/* Navigation Links */}
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <div className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+          Main Navigation
+        </div>
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
+          const Icon = item.icon;
           return (
             <button
               key={item.label}
               onClick={() => navigate(item.path)}
               className={twMerge(
                 clsx(
-                  "w-full flex items-center gap-4 px-4 py-3.5 rounded-[20px] transition-all font-bold text-left relative overflow-hidden group",
+                  "w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left group cursor-pointer",
                   isActive 
-                    ? "text-[var(--color-primary-dark)] bg-white shadow-sm border border-gray-100" 
-                    : "text-slate-500 hover:text-slate-900 hover:bg-slate-100 border border-transparent"
+                    ? "bg-[var(--color-primary)] text-white shadow-sm font-semibold" 
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80"
                 )
               )}
             >
-              <item.icon size={22} className={isActive ? "text-[var(--color-primary)]" : "text-slate-400 group-hover:text-slate-700 transition-colors"} />
-              <span className="text-base tracking-wide">{item.label}</span>
+              <div className="flex items-center gap-3 min-w-0">
+                <Icon 
+                  size={18} 
+                  className={isActive ? "text-white" : "text-slate-400 group-hover:text-slate-600 transition-colors"} 
+                />
+                <span className="truncate">{item.label}</span>
+              </div>
+              {item.badge && (
+                <span className={clsx(
+                  "text-[10px] px-1.5 py-0.5 rounded-full font-bold",
+                  isActive 
+                    ? "bg-white/20 text-white" 
+                    : "bg-slate-100 text-slate-600 group-hover:bg-slate-200"
+                )}>
+                  {item.badge}
+                </span>
+              )}
             </button>
           );
         })}
+
+        {/* Portal Switcher Shortcuts */}
+        <div className="pt-5 px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+          Switch Workspace
+        </div>
+        <div className="space-y-0.5">
+          {!isDoctor && (
+            <button 
+              onClick={() => navigate('/doctor')}
+              className="w-full flex items-center justify-between px-3 py-1.5 rounded-md text-xs font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-50 cursor-pointer"
+            >
+              <span>Doctor Portal</span>
+              <ChevronRight size={14} className="text-slate-400" />
+            </button>
+          )}
+          {!isAsha && (
+            <button 
+              onClick={() => navigate('/asha')}
+              className="w-full flex items-center justify-between px-3 py-1.5 rounded-md text-xs font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-50 cursor-pointer"
+            >
+              <span>ASHA Portal</span>
+              <ChevronRight size={14} className="text-slate-400" />
+            </button>
+          )}
+          {!isPatient && (
+            <button 
+              onClick={() => navigate('/patient')}
+              className="w-full flex items-center justify-between px-3 py-1.5 rounded-md text-xs font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-50 cursor-pointer"
+            >
+              <span>Patient Portal</span>
+              <ChevronRight size={14} className="text-slate-400" />
+            </button>
+          )}
+        </div>
       </nav>
       
-      <div className="p-5 mt-auto">
-        <button className="w-full flex items-center gap-4 px-4 py-3.5 rounded-[20px] transition-all font-bold text-left text-slate-500 hover:text-slate-900 hover:bg-slate-100 group">
-          <Settings size={22} className="text-slate-400 group-hover:text-slate-700 transition-colors" />
-          <span className="text-base tracking-wide">Settings</span>
+      {/* Clinical Reference Support Box */}
+      <div className="p-3 mx-3 mb-2 rounded-lg bg-teal-50/70 border border-teal-100 text-[11px] text-teal-900">
+        <div className="flex items-center gap-1.5 font-semibold mb-1 text-[var(--color-primary-dark)]">
+          <ShieldCheck size={14} />
+          <span>Clinical Protocol</span>
+        </div>
+        <p className="text-slate-600 leading-tight">
+          Standard triage protocols verified with primary care guidelines.
+        </p>
+      </div>
+
+      {/* Footer Settings */}
+      <div className="p-3 border-t border-slate-100 flex items-center justify-between">
+        <button 
+          onClick={() => navigate('/')}
+          className="flex items-center gap-2 text-xs font-medium text-slate-600 hover:text-slate-900 p-1.5 rounded-md hover:bg-slate-100 transition-colors cursor-pointer"
+          title="Role Switcher"
+        >
+          <ExternalLink size={15} className="text-slate-400" />
+          <span>Exit Workspace</span>
+        </button>
+        <button 
+          className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-md transition-colors cursor-pointer"
+          title="System Settings"
+          aria-label="Settings"
+        >
+          <Settings size={16} />
         </button>
       </div>
     </aside>

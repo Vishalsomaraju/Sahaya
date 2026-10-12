@@ -18,6 +18,13 @@ enum AssessmentPriority {
   HIGH
 }
 
+enum TriageLevel {
+  EMERGENCY
+  VISIT_PHC
+  VIDEO_CONSULT
+  SELF_CARE
+}
+
 enum AssessmentStatus {
   PENDING
   REVIEWED
@@ -88,6 +95,9 @@ model Assessment {
   patientId        String
   submittedById    String
   symptoms         String[]
+  severity         String?
+  duration         String?
+  triageLevel      TriageLevel?
   vitals           Json?
   aiSummary        String?
   aiRecommendation String?
@@ -102,6 +112,7 @@ model Assessment {
 
   @@index([status])
   @@index([priority])
+  @@index([triageLevel])
   @@index([createdAt])
   @@index([patientId])
 }

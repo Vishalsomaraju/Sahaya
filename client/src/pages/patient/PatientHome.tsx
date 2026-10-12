@@ -1,257 +1,256 @@
 import { useNavigate } from 'react-router-dom';
-import { HeartPulse, ArrowRight, Sparkles, Activity, Clock, CheckCircle2, Leaf, Heart, Phone } from 'lucide-react';
+import { 
+  HeartPulse, 
+  ArrowRight, 
+  Sparkles, 
+  Activity, 
+  Clock, 
+  ClipboardList, 
+  Calendar, 
+  UserCircle, 
+  Heart, 
+  Wind, 
+  RefreshCw,
+  ShieldCheck,
+  ChevronRight
+} from 'lucide-react';
 import { mockCurrentPatient } from '../../data/mockData';
 import FloatingCard from '../../components/shared/FloatingCard';
-import AnimatedButton from '../../components/shared/AnimatedButton';
-import AnimatedNumber from '../../components/shared/AnimatedNumber';
-import { motion } from 'framer-motion';
-import { fadeUp } from '../../lib/animations';
-import patientIllustration from '../../assets/illustrations/patient.svg';
+import Button from '../../components/shared/Button';
 import { useVitalsPolling } from '../../hooks/useVitalsPolling';
 
 export default function PatientHome() {
   const navigate = useNavigate();
-  const { vitals, isMock, loading } = useVitalsPolling();
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 300, damping: 24 } }
-  };
+  const { vitals, isMock, loading, error } = useVitalsPolling();
 
   return (
-    <div className="flex flex-col gap-8 max-w-5xl mx-auto pb-12 px-4 sm:px-0">
+    <div className="flex flex-col gap-6 max-w-5xl mx-auto pb-12 animate-fade-in">
       
-      <motion.div variants={containerVariants} initial="hidden" animate="show" className="flex flex-col gap-10">
+      {/* 1. Concise Patient Welcome Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-slate-200/80">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+              Welcome back, {mockCurrentPatient.name.split(' ')[0]}
+            </h1>
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-teal-50 text-[var(--color-primary-dark)] border border-teal-200">
+              Patient
+            </span>
+          </div>
+          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+            {mockCurrentPatient.village} Sector • ID: SAH-2023-8942
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2 text-xs text-slate-500">
+          <Clock size={13} className="text-slate-400" />
+          <span>Last active: Today</span>
+        </div>
+      </div>
+
+      {/* 2. Prominent Primary Action: Start Health Assessment */}
+      <FloatingCard className="p-6 md:p-8 bg-gradient-to-r from-teal-50/70 via-white to-slate-50 border-teal-200/80 shadow-clinical">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="max-w-xl">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-100/70 text-[var(--color-primary-dark)] mb-2.5">
+              <Sparkles size={13} />
+              <span>AI Triage & Clinical Guidance</span>
+            </div>
+
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mb-1.5">
+              How are you feeling today?
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
+              Experiencing new symptoms or discomfort? Run a quick 2-minute preliminary triage check to receive immediate clinical guidance and connect with a physician.
+            </p>
+          </div>
+
+          <div className="shrink-0">
+            <Button 
+              size="lg"
+              variant="primary"
+              onClick={() => navigate('/patient/assessment')}
+              className="text-sm sm:text-base font-semibold shadow-clinical px-6 py-3 gap-2"
+            >
+              <span>Start Health Assessment</span>
+              <ArrowRight size={18} />
+            </Button>
+          </div>
+        </div>
+      </FloatingCard>
+
+      {/* 3. Quick Links Navigation Tiles */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+        <FloatingCard 
+          hoverable
+          onClick={() => navigate('/patient/history')}
+          className="p-4 border-slate-200 flex items-center justify-between gap-3 group"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-teal-50 border border-teal-200 text-[var(--color-primary-dark)] flex items-center justify-center shrink-0">
+              <ClipboardList size={18} />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 group-hover:text-[var(--color-primary-dark)] transition-colors">
+                Health History
+              </h3>
+              <p className="text-[11px] text-slate-500">Past assessments & visits</p>
+            </div>
+          </div>
+          <ChevronRight size={16} className="text-slate-400 group-hover:text-[var(--color-primary)] transition-colors" />
+        </FloatingCard>
+
+        <FloatingCard 
+          hoverable
+          onClick={() => navigate('/patient/reminders')}
+          className="p-4 border-slate-200 flex items-center justify-between gap-3 group"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 flex items-center justify-center shrink-0">
+              <Calendar size={18} />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 group-hover:text-blue-700 transition-colors">
+                Reminders
+              </h3>
+              <p className="text-[11px] text-slate-500">Medication & appointments</p>
+            </div>
+          </div>
+          <ChevronRight size={16} className="text-slate-400 group-hover:text-blue-600 transition-colors" />
+        </FloatingCard>
+
+        <FloatingCard 
+          hoverable
+          onClick={() => navigate('/patient/profile')}
+          className="p-4 border-slate-200 flex items-center justify-between gap-3 group"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 flex items-center justify-center shrink-0">
+              <UserCircle size={18} />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 group-hover:text-indigo-700 transition-colors">
+                Health Profile
+              </h3>
+              <p className="text-[11px] text-slate-500">Emergency & ASHA details</p>
+            </div>
+          </div>
+          <ChevronRight size={16} className="text-slate-400 group-hover:text-indigo-600 transition-colors" />
+        </FloatingCard>
+      </div>
+
+      {/* 4. Secondary Health Readings & Latest Assessment Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
         
-        {/* Massive Editorial Hero Section (40% width illustration) */}
-        <motion.div variants={fadeUp} className="relative w-full rounded-[36px] overflow-hidden bg-gradient-to-br from-[#f0fdf4] to-[#ccfbf1] p-8 sm:p-12 shadow-[0_12px_40px_rgb(0,0,0,0.06)] border border-white/80">
-          
-          <div className="flex flex-col md:flex-row items-center justify-between gap-10">
-            {/* Storytelling Text & CTA */}
-            <div className="relative z-10 w-full md:w-[55%] flex flex-col gap-6">
-              <div>
-                <p className="text-[var(--color-primary)] font-bold text-sm tracking-[0.2em] uppercase mb-2">
-                  Hello, {mockCurrentPatient.name.split(' ')[0]} 👋
-                </p>
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-[#064e3b] leading-[1.1] tracking-tight">
-                  How are you<br />feeling today?
-                </h1>
-              </div>
-
-              <FloatingCard 
-                hoverable
-                onClick={() => navigate('/patient/assessment')}
-                className="mt-4 bg-white/90 backdrop-blur-xl border border-white p-5 cursor-pointer group flex flex-col gap-4 shadow-xl shadow-[#0F9D94]/10 rounded-[28px]"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-[20px] bg-[var(--color-primary)] text-white flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-[var(--color-primary)]/30">
-                    <Sparkles size={28} />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-[#064e3b]">Quick Assessment</h2>
-                    <p className="text-[#0d9488] text-sm font-semibold">Estimated time: 2 min</p>
-                  </div>
-                </div>
-                <AnimatedButton fullWidth className="bg-[#0f766e] hover:bg-[#115e59] text-white flex items-center justify-between px-6 py-4 rounded-2xl text-lg group-hover:shadow-md transition-all font-bold">
-                  <span>Start Assessment</span>
-                  <ArrowRight size={22} className="group-hover:translate-x-1 transition-transform" />
-                </AnimatedButton>
-              </FloatingCard>
+        {/* Vitals Telemetry Card */}
+        <FloatingCard className="p-5 border-slate-200">
+          <div className="flex items-center justify-between mb-4 pb-2.5 border-b border-slate-100">
+            <div className="flex items-center gap-2">
+              <Activity size={16} className="text-[var(--color-primary)]" />
+              <h3 className="text-sm font-bold text-slate-900">Current Health Telemetry</h3>
             </div>
-
-            {/* Modular Illustration (40-45% width) */}
-            <div className="relative z-10 w-full md:w-[45%] hidden sm:flex items-center justify-center">
-              <motion.img 
-                animate={{ y: [-5, 5, -5] }} 
-                transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
-                src={patientIllustration} 
-                alt="Patient sitting comfortably" 
-                className="w-full h-auto max-h-[400px] object-contain drop-shadow-2xl relative z-20"
-              />
-              
-              {/* Decorative floating icons */}
-              <motion.div 
-                animate={{ y: [0, -10, 0], rotate: [0, 5, 0] }}
-                transition={{ repeat: Infinity, duration: 4.2, ease: "easeInOut", delay: 0.5 }}
-                className="absolute top-10 left-10 z-10 bg-white p-3 rounded-2xl shadow-lg shadow-green-900/5 text-emerald-500"
-              >
-                <Leaf size={24} />
-              </motion.div>
-              
-              <motion.div 
-                animate={{ y: [0, -8, 0], rotate: [0, -5, 0] }}
-                transition={{ repeat: Infinity, duration: 3.5, ease: "easeInOut", delay: 1.2 }}
-                className="absolute bottom-20 left-4 z-30 bg-white p-3 rounded-2xl shadow-lg shadow-rose-900/5 text-rose-500"
-              >
-                <Heart size={24} />
-              </motion.div>
-              
-              <motion.div 
-                animate={{ y: [0, -12, 0], rotate: [0, 8, 0] }}
-                transition={{ repeat: Infinity, duration: 5, ease: "easeInOut", delay: 0.2 }}
-                className="absolute top-1/2 right-4 z-10 bg-white p-3 rounded-2xl shadow-lg shadow-blue-900/5 text-blue-500"
-              >
-                <Phone size={24} />
-              </motion.div>
-            </div>
+            {isMock ? (
+              <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                Simulated Data
+              </span>
+            ) : (
+              <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                Live Sensor Feed
+              </span>
+            )}
           </div>
-        </motion.div>
 
-        {/* Floating Health Metrics with Alive Animations */}
-        <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
-          
-          {/* Beating Heart Rate Card */}
-          <FloatingCard className="p-8 flex flex-col justify-between h-48 bg-white shadow-sm border border-gray-100 rounded-[32px] group relative overflow-hidden">
-            <div className="flex items-center justify-between relative z-10">
-              <motion.div 
-                animate={{ scale: [1, 1.2, 1] }} 
-                transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut" }}
-                className="w-12 h-12 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center shadow-inner shadow-rose-100"
-              >
-                <HeartPulse size={24} className="drop-shadow-sm" />
-              </motion.div>
-              <motion.span 
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.3 }}
-              >
-                <motion.span 
-                  animate={{ scale: [1, 1.05, 1] }}
-                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-                  className="inline-block text-xs font-extrabold text-rose-600 bg-rose-50 px-4 py-1.5 rounded-full uppercase tracking-wider"
-                >
-                  Normal
-                </motion.span>
-              </motion.span>
+          {loading ? (
+            <div className="py-8 text-center text-xs text-slate-500 flex items-center justify-center gap-2">
+              <RefreshCw size={14} className="animate-spin text-[var(--color-primary)]" />
+              <span>Fetching telemetry readings...</span>
             </div>
-            <div className="relative z-10">
-              <p className="text-sm font-bold text-gray-400 mb-1 tracking-wide uppercase">Heart Rate</p>
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-5xl font-extrabold text-gray-800 tracking-tight">
-                  {loading ? '...' : <AnimatedNumber value={vitals?.heartRate || 72} />}
-                </span>
-                <span className="text-lg font-bold text-gray-400">bpm</span>
-              </div>
+          ) : error ? (
+            <div className="py-4 text-xs text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-200">
+              <span>Telemetry sensor currently offline. Baseline readings shown from last clinical visit.</span>
             </div>
-            
-            {/* Animated EKG Line Background */}
-            <div className="absolute bottom-4 right-0 left-20 opacity-20 text-rose-500 pointer-events-none">
-              <svg viewBox="0 0 200 40" className="w-full h-16 preserve-3d">
-                <motion.path
-                  initial={{ pathLength: 0, opacity: 0 }}
-                  animate={{ pathLength: 1, opacity: 1 }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                  d="M0 20 L40 20 L50 10 L60 30 L70 20 L200 20"
-                  fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-          </FloatingCard>
-
-          {/* Breathing SpO2 Card */}
-          <FloatingCard className="p-8 flex flex-col justify-between h-48 bg-white shadow-sm border border-gray-100 rounded-[32px] group relative overflow-hidden">
-            <div className="flex items-center justify-between relative z-10">
-              <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center shadow-inner shadow-blue-100">
-                <Activity size={24} />
-              </div>
-              <motion.span 
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.3 }}
-              >
-                <motion.span 
-                  animate={{ scale: [1, 1.05, 1] }}
-                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-                  className="inline-block text-xs font-extrabold text-blue-600 bg-blue-50 px-4 py-1.5 rounded-full uppercase tracking-wider"
-                >
-                  Optimal
-                </motion.span>
-              </motion.span>
-            </div>
-            <div className="relative z-10 flex justify-between items-end">
-              <div>
-                <p className="text-sm font-bold text-gray-400 mb-1 tracking-wide uppercase">Oxygen (SpO₂)</p>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-5xl font-extrabold text-gray-800 tracking-tight">
-                    {loading ? '...' : <AnimatedNumber value={vitals?.spo2 || 98} />}
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200/90 flex flex-col justify-between">
+                <div className="flex items-center justify-between text-xs text-slate-600 mb-1">
+                  <div className="flex items-center gap-1.5 font-semibold">
+                    <Heart size={14} className="text-red-500" />
+                    <span>Heart Rate</span>
+                  </div>
+                  <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1.5 rounded">Normal</span>
+                </div>
+                <div className="flex items-baseline gap-1 mt-1">
+                  <span className="text-2xl font-bold text-slate-900 tracking-tight">
+                    {vitals?.heartRate || 72}
                   </span>
-                  <span className="text-lg font-bold text-gray-400">%</span>
+                  <span className="text-xs text-slate-400 font-medium">bpm</span>
                 </div>
               </div>
-              
-              {/* Circular Progress Ring */}
-              <div className="relative w-20 h-20">
-                <svg className="w-full h-full transform -rotate-90">
-                  <circle cx="40" cy="40" r="34" fill="none" stroke="#eff6ff" strokeWidth="8" />
-                  <motion.circle 
-                    initial={{ strokeDasharray: "214", strokeDashoffset: "214" }}
-                    animate={{ strokeDashoffset: "4.28" }} // 98% of 214
-                    transition={{ duration: 2, ease: "easeOut" }}
-                    cx="40" cy="40" r="34" fill="none" stroke="#3b82f6" strokeWidth="8" strokeLinecap="round" 
-                  />
-                </svg>
-                <motion.div 
-                  animate={{ opacity: [0.3, 0.6, 0.3] }}
-                  transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-                  className="absolute inset-0 flex items-center justify-center text-blue-400"
-                >
-                  <Activity size={20} />
-                </motion.div>
+
+              <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200/90 flex flex-col justify-between">
+                <div className="flex items-center justify-between text-xs text-slate-600 mb-1">
+                  <div className="flex items-center gap-1.5 font-semibold">
+                    <Wind size={14} className="text-blue-500" />
+                    <span>SpO₂ Saturation</span>
+                  </div>
+                  <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1.5 rounded">Optimal</span>
+                </div>
+                <div className="flex items-baseline gap-1 mt-1">
+                  <span className="text-2xl font-bold text-slate-900 tracking-tight">
+                    {vitals?.spo2 || 98}
+                  </span>
+                  <span className="text-xs text-slate-400 font-medium">%</span>
+                </div>
               </div>
             </div>
-          </FloatingCard>
-        </motion.div>
+          )}
 
-        {/* AI Timeline (Living Health Companion) */}
-        <motion.div variants={itemVariants} className="flex flex-col gap-6 mt-4">
-          <h3 className="text-2xl font-extrabold text-[#064e3b] px-2">Health Companion</h3>
-          
-          <div className="flex flex-col gap-4 relative">
-            {/* Timeline track */}
-            <div className="absolute left-8 top-10 bottom-10 w-0.5 bg-gray-100 hidden sm:block"></div>
-            
-            <FloatingCard hoverable className="p-6 flex flex-col sm:flex-row items-start sm:items-center gap-6 border border-transparent hover:border-gray-200 rounded-[28px] relative z-10 bg-white shadow-sm">
-              <div className="w-16 h-16 rounded-full bg-[#f0fdf4] text-[#10b981] flex items-center justify-center shrink-0 shadow-inner shadow-green-100">
-                <CheckCircle2 size={30} />
-              </div>
-              <div className="flex-1">
-                <h4 className="font-extrabold text-xl text-gray-800 mb-1">Morning check-in complete</h4>
-                <p className="text-base text-gray-500 font-medium">Heart rate normal, SpO₂ optimal. Vitals securely logged.</p>
-              </div>
-              <div className="flex items-center gap-2 text-gray-400 font-bold bg-gray-50 px-4 py-2 rounded-full">
-                <Clock size={16} />
-                <span>Today</span>
-              </div>
-            </FloatingCard>
-
-            <FloatingCard hoverable className="p-6 flex flex-col sm:flex-row items-start sm:items-center gap-6 border border-transparent hover:border-gray-200 rounded-[28px] relative z-10 bg-white shadow-sm">
-              <div className="w-16 h-16 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center shrink-0 shadow-inner shadow-blue-100">
-                <Sparkles size={30} />
-              </div>
-              <div className="flex-1">
-                <h4 className="font-extrabold text-xl text-gray-800 mb-1">AI Health Review</h4>
-                <p className="text-base text-gray-500 font-medium">Your reported symptoms indicate a slight improvement. Stay hydrated.</p>
-              </div>
-              <div className="flex items-center gap-2 text-gray-400 font-bold bg-gray-50 px-4 py-2 rounded-full">
-                <Clock size={16} />
-                <span>Yesterday</span>
-              </div>
-            </FloatingCard>
-            
+          <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
+            <span>Device: Wearable Sensor</span>
+            <span>Recorded: Today</span>
           </div>
-        </motion.div>
+        </FloatingCard>
 
-      </motion.div>
+        {/* Latest Clinical Assessment & Advisory Card */}
+        <FloatingCard className="p-5 border-slate-200">
+          <div className="flex items-center justify-between mb-4 pb-2.5 border-b border-slate-100">
+            <div className="flex items-center gap-2">
+              <HeartPulse size={16} className="text-[var(--color-primary)]" />
+              <h3 className="text-sm font-bold text-slate-900">Latest Health Check-in</h3>
+            </div>
+            <span className="text-xs text-slate-400">Oct 11, 2026</span>
+          </div>
+
+          <div className="space-y-3">
+            <div className="p-3.5 rounded-lg bg-teal-50/60 border border-teal-200 text-xs text-slate-700">
+              <span className="font-bold text-[var(--color-primary-dark)] block mb-0.5">
+                Previous Assessment Outcome:
+              </span>
+              <p className="text-sm font-bold text-slate-900 leading-snug">
+                Video Consultation Recommended
+              </p>
+              <p className="text-[11px] text-slate-500 mt-1">
+                Reported Symptoms: Fever, Cough • Follow-up advised with Primary Healthcare Officer.
+              </p>
+            </div>
+
+            <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 text-xs flex items-center justify-between">
+              <div className="flex items-center gap-2 text-slate-600">
+                <ShieldCheck size={15} className="text-teal-600" />
+                <span>Next recommended check-in: In 48 hours</span>
+              </div>
+              <button 
+                onClick={() => navigate('/patient/history')}
+                className="text-[var(--color-primary-dark)] font-semibold hover:underline text-xs cursor-pointer"
+              >
+                View History →
+              </button>
+            </div>
+          </div>
+        </FloatingCard>
+
+      </div>
+
     </div>
   );
 }

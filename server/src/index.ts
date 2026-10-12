@@ -7,6 +7,7 @@ import { errorHandler } from './middleware/errorHandler';
 import healthRoutes from './routes/health';
 import authRoutes from './routes/auth';
 import patientRoutes from './routes/patient';
+import doctorRoutes from './routes/doctor';
 
 const app: Application = express();
 const PORT = process.env.PORT || 5000;
@@ -20,6 +21,7 @@ app.use(requestLogger);
 app.use('/api', healthRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/patient', patientRoutes);
+app.use('/api/doctor', doctorRoutes);
 
 // Error Handling Middleware
 app.use(errorHandler);

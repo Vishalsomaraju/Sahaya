@@ -1,5 +1,16 @@
 import { Router } from 'express';
-import { getDashboard, createAssessment, getAssessments, getAssessmentById, getReminders, getTriageResult, recordWearableVitals, getLatestVitals, getVitalsHistory } from '../controllers/patientController';
+import { 
+  getDashboard, 
+  createAssessment, 
+  getAssessments, 
+  getAssessmentById, 
+  getReminders, 
+  getTriageResult, 
+  recordWearableVitals, 
+  getLatestVitals, 
+  getVitalsHistory,
+  getCommunityPatients
+} from '../controllers/patientController';
 import { authenticate, authorize } from '../middleware/authMiddleware';
 import { checkAssessmentOwnership } from '../middleware/ownershipMiddleware';
 
@@ -10,16 +21,20 @@ router.post('/vitals', recordWearableVitals);
 router.get('/:id/latest-vitals', getLatestVitals);
 router.get('/:id/vitals', getVitalsHistory);
 
-// Protect all routes: MUST be logged in and MUST be a PATIENT
+// Protect all below routes: MUST be authenticated
 router.use(authenticate);
-router.use(authorize(['PATIENT']));
 
-router.get('/dashboard', getDashboard);
-router.get('/reminders', getReminders);
+// Patient-only personal dashboard & reminders
+router.get('/dashboard', authorize(['PATIENT']), getDashboard);
+router.get('/reminders', authorize(['PATIENT']), getReminders);
 
-router.post('/assessments', createAssessment);
-router.get('/assessments', getAssessments);
-router.get('/assessments/:id', checkAssessmentOwnership, getAssessmentById);
-router.get('/assessments/:id/triage', checkAssessmentOwnership, getTriageResult);
+// Assessment lifecycle: accessible by PATIENT and ASHA field workers (and DOCTORS for review)
+router.post('/assessments', authorize(['PATIENT', 'ASHA']), createAssessment);
+router.get('/assessments', authorize(['PATIENT', 'ASHA', 'DOCTOR']), getAssessments);
+router.get('/assessments/:id', authorize(['PATIENT', 'ASHA', 'DOCTOR']), checkAssessmentOwnership, getAssessmentById);
+router.get('/assessments/:id/triage', authorize(['PATIENT', 'ASHA', 'DOCTOR']), checkAssessmentOwnership, getTriageResult);
+
+// ASHA field workers: directory of community patients
+router.get('/community-patients', authorize(['ASHA']), getCommunityPatients);
 
 export default router;

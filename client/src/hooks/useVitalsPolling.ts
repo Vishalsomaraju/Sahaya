@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../lib/api';
 
 export interface VitalsData {
   heartRate?: number;
@@ -25,7 +26,7 @@ export const useVitalsPolling = (patientId: string = 'demo-patient', intervalMs:
 
     const fetchVitals = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/patient/${patientId}/latest-vitals`);
+        const response = await fetch(`${API_BASE_URL}/api/patient/${patientId}/latest-vitals`);
         if (!response.ok) throw new Error('Failed to fetch vitals');
         
         const data = await response.json();

@@ -18,7 +18,9 @@ export const checkAssessmentOwnership = async (req: Request, res: Response, next
       return res.status(404).json({ data: null, error: 'Assessment not found' });
     }
 
-    if (assessment.patientId !== userId) {
+    const userRole = req.user?.role;
+
+    if (userRole !== 'DOCTOR' && assessment.patientId !== userId && assessment.submittedById !== userId) {
       return res.status(403).json({ data: null, error: 'Access denied. You do not own this assessment.' });
     }
 
